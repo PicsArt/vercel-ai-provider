@@ -1,0 +1,66 @@
+{
+  "name": "@picsart/vercel-ai-provider",
+  "version": "0.1.0",
+  "description": "Picsart image and video models for the Vercel AI SDK",
+  "license": "MIT",
+  "homepage": "https://github.com/PicsArt/vercel-ai-provider#readme",
+  "bugs": {
+    "url": "https://github.com/PicsArt/vercel-ai-provider/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PicsArt/vercel-ai-provider.git"
+  },
+  "keywords": [
+    "ai",
+    "ai-sdk",
+    "vercel",
+    "vercel-ai-sdk",
+    "picsart",
+    "image-generation",
+    "video-generation",
+    "provider"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:live": "PICSART_LIVE=1 vitest run test/live.test.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/provider": "^4.0.25",
+    "@ai-sdk/provider-utils": "^5.0.57",
+    "@picsart/ai-sdk": "^6.31.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.25.76 || ^4.1.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "ai": "^7.0.133",
+    "tsup": "^8.5.1",
+    "typescript": "~5.8.3",
+    "vitest": "^4.1.11",
+    "zod": "^4.1.8"
+  }
+}
