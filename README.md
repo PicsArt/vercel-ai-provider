@@ -23,7 +23,7 @@ import { generateImage, experimental_generateVideo } from 'ai';
 import { picsart } from '@picsart/vercel-ai-provider';
 
 const imageModels = await picsart.listModels({ mode: 'image' });
-const [imageModel] = imageModels.filter((model) => model.inputType === 't2i');
+const [imageModel] = imageModels.filter((model) => model.inputType === 't2i' && model.requiredParams.length === 0);
 const { image, images } = await generateImage({
   model: picsart.image(imageModel.id),
   prompt: 'a ceramic mug on a marble table',
@@ -34,7 +34,7 @@ console.log(image.mediaType, image.uint8Array.length);
 console.log(images[0].providerMetadata?.picsart); // { url, generationId, playgroundUrl, ... }
 
 const videoModels = await picsart.listModels({ mode: 'video' });
-const [videoModel] = videoModels.filter((model) => model.inputType === 't2v');
+const [videoModel] = videoModels.filter((model) => model.inputType === 't2v' && model.requiredParams.length === 0);
 const { video } = await experimental_generateVideo({
   model: picsart.video(videoModel.id),
   prompt: 'steam rises from a ceramic mug',
@@ -43,7 +43,7 @@ const { video } = await experimental_generateVideo({
 console.log(video.mediaType, video.uint8Array.length);
 ```
 
-`listModels` returns `{ id, name, mode, inputType }` for each model. `inputType` says what a model takes: `t2i`, `i2i`, `t2v`, `i2v`, `a2v` and `v2v` (text, image, audio or video in, image or video out). It is left out when the catalog has none.
+`listModels` returns `{ id, name, mode, inputType, requiredParams }` for each model. `inputType` says what a model takes: `t2i`, `i2i`, `t2v`, `i2v`, `a2v` and `v2v` (text, image, audio or video in, image or video out). It is left out when the catalog has none. `requiredParams` lists the parameters a model requires besides `prompt`; some text-to-image and text-to-video models also require reference images or IDs, so an empty list is how you find a model that runs from a prompt alone.
 
 Unless you set `playgroundUrl: false`, every generated item carries a `playgroundUrl` that opens the same model and settings in the Picsart AI Playground.
 
@@ -66,7 +66,7 @@ A Picsart video takes minutes, which is longer than many serverless functions ca
 import { experimental_getVideoStatus, experimental_startVideo } from 'ai';
 import { picsart } from '@picsart/vercel-ai-provider';
 
-const [videoModel] = (await picsart.listModels({ mode: 'video' })).filter((model) => model.inputType === 't2v');
+const [videoModel] = (await picsart.listModels({ mode: 'video' })).filter((model) => model.inputType === 't2v' && model.requiredParams.length === 0);
 
 // First request: start the job and store the operation (plain JSON).
 const { operation } = await experimental_startVideo({
@@ -178,7 +178,7 @@ For images, `generateImage` keeps only `picsart.images` in the merged `result.pr
 import { generateImage } from 'ai';
 import { picsart, type PicsartImageMetadata } from '@picsart/vercel-ai-provider';
 
-const [imageModel] = (await picsart.listModels({ mode: 'image' })).filter((model) => model.inputType === 't2i');
+const [imageModel] = (await picsart.listModels({ mode: 'image' })).filter((model) => model.inputType === 't2i' && model.requiredParams.length === 0);
 const result = await generateImage({ model: picsart.image(imageModel.id), prompt: 'a ceramic mug', n: 6 });
 
 const credits = result.calls.reduce(
@@ -194,7 +194,7 @@ For video, ask for one video per call. Each result's `providerMetadata.picsart` 
 import { experimental_generateVideo } from 'ai';
 import { picsart, type PicsartVideoMetadata } from '@picsart/vercel-ai-provider';
 
-const [videoModel] = (await picsart.listModels({ mode: 'video' })).filter((model) => model.inputType === 't2v');
+const [videoModel] = (await picsart.listModels({ mode: 'video' })).filter((model) => model.inputType === 't2v' && model.requiredParams.length === 0);
 const model = picsart.video(videoModel.id);
 
 const first = await experimental_generateVideo({ model, prompt: 'steam rises from a ceramic mug' });

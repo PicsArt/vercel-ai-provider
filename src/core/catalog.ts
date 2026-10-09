@@ -1,4 +1,4 @@
-import { getModel, getModelsByMode, Model, type FlatParamEntry } from '@picsart/ai-sdk';
+import { ApiError, catalog, Model, type FlatParamEntry, type ModelDescriptor } from '@picsart/ai-sdk';
 import { PicsartCatalogError } from './errors';
 import { MEDIA_KINDS, type CatalogModel, type CatalogParam, type ModelCatalog } from './types';
 
@@ -19,11 +19,25 @@ function toCatalogParam(entry: FlatParamEntry): CatalogParam {
   return param;
 }
 
+function toCatalogModel(descriptor: ModelDescriptor): CatalogModel {
+  const { mode, inputType } = descriptor.meta();
+  const params = Object.fromEntries(descriptor.params().all().map((entry) => [entry.key, toCatalogParam(entry)]));
+  return { id: descriptor.id, name: descriptor.name, mode, inputType, params };
+}
+
 function sdkModel(id: string): CatalogModel | undefined {
-  const definition = getModel(id);
-  if (!definition) return undefined;
-  const params = Object.fromEntries(Model(definition.id).params().all().map((entry) => [entry.key, toCatalogParam(entry)]));
-  return { id: definition.id, name: definition.name, mode: definition.mode, inputType: definition.inputType, params };
+  let descriptor: ModelDescriptor;
+  try {
+    descriptor = Model(id);
+  } catch (error) {
+    if (error instanceof ApiError && error.code === 'unknown_model') return undefined;
+    throw error;
+  }
+  // Model() also resolves trimmed refs, workflow names and display names; only IDs and vendor model IDs are model IDs here
+  const { workflow, editWorkflow } = descriptor.api;
+  const byOtherRef = id !== id.trim() || id === workflow || id === editWorkflow || id.toLowerCase() === descriptor.name.trim().toLowerCase();
+  if (id !== descriptor.id && byOtherRef) return undefined;
+  return toCatalogModel(descriptor);
 }
 
 export function isModelCatalog(value: unknown): value is ModelCatalog {
@@ -39,10 +53,7 @@ export function sdkCatalog(): ModelCatalog {
     },
     async listModels(filter) {
       const modes = filter?.mode ? [filter.mode] : MEDIA_KINDS;
-      return modes.flatMap((mode) => getModelsByMode(mode).flatMap((definition) => {
-        const model = sdkModel(definition.id);
-        return model ? [model] : [];
-      }));
+      return modes.flatMap((mode) => catalog.find({ output: mode }).map(toCatalogModel));
     },
   };
 }

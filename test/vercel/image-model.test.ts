@@ -9,7 +9,7 @@ import { VERSION } from '../../src/version';
 import type { PicsartImageMetadata } from '../../src';
 import { createPicsart, createPicsartWith } from '../../src/vercel/provider';
 import type { PicsartRuntime } from '../../src/vercel/runtime';
-import { editModel, imageModel, memoryCatalog, noFilesModel, testCatalog } from '../fixtures/catalog';
+import { editModel, imageModel, memoryCatalog, noFilesModel, promptlessModel, testCatalog } from '../fixtures/catalog';
 import { fakeExecutor } from '../fixtures/executor';
 
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52]);
@@ -260,6 +260,16 @@ describe('Picsart image model', () => {
     expect(models.map((model) => model.id)).toContain(imageModel.id);
     expect(models.every((model) => model.mode === 'image')).toBe(true);
     expect(() => provider.languageModel('any')).toThrow(NoSuchModelError);
+  });
+
+  it('lists the required parameters other than the prompt', async () => {
+    const { executor } = fakeExecutor();
+    const provider = createPicsartWith(runtimeWith(executor).runtime);
+    const required = Object.fromEntries((await provider.listModels({ mode: 'image' })).map((model) => [model.id, model.requiredParams]));
+    expect(required[imageModel.id]).toEqual([]);
+    expect(required[editModel.id]).toEqual(['startFrame']);
+    expect(required[noFilesModel.id]).toEqual(['sourceImageId']);
+    expect(required[promptlessModel.id]).toEqual(['imageUrls']);
   });
 });
 

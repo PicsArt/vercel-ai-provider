@@ -5,7 +5,7 @@ import { isModelCatalog, remoteCatalog, sdkCatalog } from '../core/catalog';
 import { sdkExecutor, sdkValidate, serverExecutor, serverValidate } from '../core/executors';
 import { DEFAULT_PLAYGROUND_URL } from '../core/playground';
 import { recordStatusReads } from '../core/status-reads';
-import type { MediaKind, ModelCatalog } from '../core/types';
+import type { CatalogModel, MediaKind, ModelCatalog } from '../core/types';
 import { VERSION } from '../version';
 import { toProviderError } from './errors';
 import { PicsartImageModel } from './image-model';
@@ -45,6 +45,12 @@ export interface PicsartModelInfo {
   name: string;
   mode: MediaKind;
   inputType?: string;
+  /** Required parameters other than `prompt`; empty when the prompt alone is enough. */
+  requiredParams: string[];
+}
+
+function requiredParams(model: CatalogModel): string[] {
+  return Object.entries(model.params).filter(([key, param]) => key !== 'prompt' && param.required).map(([key]) => key);
 }
 
 export interface PicsartProvider extends ProviderV4 {
@@ -75,7 +81,7 @@ export function createPicsartWith(runtime: PicsartRuntime): PicsartProvider {
       try {
         const models = await runtime.catalog.listModels(filter);
         return models.flatMap((model) => (model.mode === 'image' || model.mode === 'video'
-          ? [{ id: model.id, name: model.name, mode: model.mode, ...(model.inputType ? { inputType: model.inputType } : {}) }]
+          ? [{ id: model.id, name: model.name, mode: model.mode, ...(model.inputType ? { inputType: model.inputType } : {}), requiredParams: requiredParams(model) }]
           : []));
       } catch (error) {
         throw toProviderError(error, { modelId: '*', modelType: 'imageModel', url: runtime.baseURL });

@@ -1,4 +1,4 @@
-import { Model } from '@picsart/ai-sdk';
+import { ALL_MODELS, Model } from '@picsart/ai-sdk';
 import { describe, expect, it } from 'vitest';
 import { remoteCatalog, sdkCatalog } from '../../src/core/catalog';
 import { PicsartCatalogError } from '../../src/core/errors';
@@ -25,6 +25,24 @@ describe('sdkCatalog', () => {
 
   it('returns undefined for an unknown model', async () => {
     expect(await sdkCatalog().getModel('no-such-model-for-tests')).toBeUndefined();
+  });
+
+  it('looks models up by ID or vendor model ID, not by workflow or display name', async () => {
+    const catalog = sdkCatalog();
+    const ids = new Set(ALL_MODELS.map((definition) => definition.id));
+    const aliased = ALL_MODELS.find((definition) => definition.modelId && !ids.has(definition.modelId));
+    if (!aliased?.modelId) throw new Error('The installed catalog has no model with a vendor model ID');
+    expect((await catalog.getModel(aliased.modelId))?.id).toBe(aliased.id);
+
+    const model = (await catalog.listModels({ mode: 'image' })).find((candidate) => {
+      const { workflow } = Model(candidate.id).api;
+      return !ids.has(candidate.name) && !ids.has(workflow) && workflow !== candidate.id;
+    });
+    if (!model) throw new Error('The installed catalog has no image model with a distinct workflow and name');
+    expect((await catalog.getModel(model.id))?.id).toBe(model.id);
+    expect(await catalog.getModel(` ${model.id} `)).toBeUndefined();
+    expect(await catalog.getModel(model.name)).toBeUndefined();
+    expect(await catalog.getModel(Model(model.id).api.workflow)).toBeUndefined();
   });
 
   it('copies enum options and file shapes', async () => {

@@ -1,6 +1,6 @@
 {
   "name": "@picsart/vercel-ai-provider",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Picsart image and video models for the Vercel AI SDK",
   "license": "MIT",
   "homepage": "https://github.com/PicsArt/vercel-ai-provider#readme",
