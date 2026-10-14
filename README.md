@@ -2,6 +2,8 @@
 
 Picsart image and video models for the [Vercel AI SDK](https://ai-sdk.dev).
 
+For a ready-to-deploy example, see the [Image & Video Studio starter](https://github.com/PicsArt/picsart-vercel-starter), a Next.js app with a Deploy to Vercel button.
+
 ## Install
 
 ```bash
