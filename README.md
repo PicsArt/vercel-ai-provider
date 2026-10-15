@@ -122,7 +122,7 @@ const picsart = createPicsart({
 
 | Setting | What it changes |
 |---|---|
-| `catalog: 'sdk'` | Models come from the installed `@picsart/ai-sdk`. New Picsart models arrive with an `@picsart/ai-sdk` update. |
+| `catalog: 'sdk'` | Models come from the installed `@picsart/ai-sdk`. New Picsart models arrive with a provider update: `npm install @picsart/vercel-ai-provider@latest`. |
 | `catalog: { url, ttlMs }` | Models come from a catalog service at `url` (`GET {url}/v1/models-catalog`), cached for `ttlMs` (default 10 minutes). Only for a deployment where such a service is reachable; see below. |
 | `catalog: yourCatalog` | Any object with `getModel(id)` and `listModels(filter?)`, typed as `ModelCatalog`. |
 | `execution: 'sdk'` | Requests are built on your side by `@picsart/ai-sdk` and checked against the model's schema before anything is submitted, so a bad request fails before credits are spent. |
@@ -142,7 +142,7 @@ The default `'sdk'` catalog is the supported option. Picsart's catalog service i
 
 `remoteCatalog({ url })` and `sdkCatalog()` are exported for building your own catalog. A standalone `remoteCatalog({ url })` sends no API key and no gateway headers unless you give it a `fetch` that adds them; use `catalog: { url }` to fetch the catalog with your key. A catalog service that has no catalog route at `url` fails with an error instead of listing no models.
 
-Whichever `execution` you pick, a model must be listed by the `catalog` before it can run. The default `'sdk'` catalog lists only the models of your installed `@picsart/ai-sdk`, so to use a newer model, update `@picsart/ai-sdk`, or pair `execution: 'server'` with your own `ModelCatalog` that lists it.
+Whichever `execution` you pick, a model must be listed by the `catalog` before it can run. The default `'sdk'` catalog lists only the models of your installed `@picsart/ai-sdk`, so to use a newer model, update `@picsart/vercel-ai-provider`, or pair `execution: 'server'` with your own `ModelCatalog` that lists it.
 
 ### Workflow
 
